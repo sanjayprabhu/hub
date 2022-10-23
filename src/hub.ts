@@ -12,6 +12,7 @@ import {
   NETWORK_TOPIC_CONTACT,
   NETWORK_TOPIC_PRIMARY,
   UserContent,
+  GOSSIP_MESSAGE_VERSION,
 } from '~/network/p2p/protocol';
 import { AddressInfo } from 'net';
 import { isContactInfo, isIdRegistryContent, isUserContent } from '~/types/typeguards';
@@ -149,6 +150,7 @@ export class Hub extends TypedEmitter<HubEvents> implements RPCHandler {
             count: currentSnapshot.numMessages,
           },
           topics: [NETWORK_TOPIC_CONTACT],
+          version: GOSSIP_MESSAGE_VERSION,
         };
         await this.gossipMessage(gossipMessage);
       }
@@ -331,6 +333,7 @@ export class Hub extends TypedEmitter<HubEvents> implements RPCHandler {
         message,
       },
       topics: [NETWORK_TOPIC_PRIMARY],
+      version: GOSSIP_MESSAGE_VERSION,
     };
     await this.gossipMessage(gossipMessage);
     return mergeResult;
@@ -352,6 +355,7 @@ export class Hub extends TypedEmitter<HubEvents> implements RPCHandler {
         message: event,
       },
       topics: [NETWORK_TOPIC_PRIMARY],
+      version: GOSSIP_MESSAGE_VERSION,
     };
     await this.gossipMessage(gossipMessage);
     return mergeResult;
