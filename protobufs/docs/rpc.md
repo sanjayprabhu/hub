@@ -155,7 +155,6 @@ Used to subscribe to real-time event updates from the Farcaster Hub
 | message             | [Message](#)           |          | Message that was merged into the Hub                 |
 | deleted_messages    | [Message](#)           | repeated | Messages that were removed as a result of the Merkle |
 | id_registry_event   | [IdRegistryEvent](#)   |          | On-chain FIR event that corresponds to the event     |
-| name_registry_event | [NameRegistryEvent](#) |          | On-chain FNR event that corresponds to the event     |
 
 #### EventType
 
@@ -182,13 +181,6 @@ Used to query the Hubs for the state of the Farcaster Id Registry and Farcaster 
 | -------------------- | ------------------------ | ----------------- | ------------------------------------------------------ |
 | GetFids              | Empty                    | FidsResponse      | Returns the most recent Fids that were registered      |
 | GetIdRegistryEvent   | FidRequest               | IdRegistryEvent   | Returns the most recent IdRegistryEvent for an Fid     |
-| GetNameRegistryEvent | NameRegistryEventRequest | NameRegistryEvent | Returns the most recent NameRegistryEvent for an Fname |
-
-#### NameRegistryEvent Request
-
-| Field | Type       | Label | Description                                                   |
-| ----- | ---------- | ----- | ------------------------------------------------------------- |
-| name  | [bytes](#) |       | Fname of the user whose NameRegistry event is being requested |
 
 #### Fids Response
 

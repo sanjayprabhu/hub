@@ -18,7 +18,6 @@ import {
   Message,
   MessagesResponse,
   Metadata,
-  NameRegistryEvent,
   ReactionAddMessage,
   ReactionRemoveMessage,
   Server as GrpcServer,
@@ -735,22 +734,6 @@ export default class Server {
           },
         );
       },
-      getNameRegistryEvent: async (call, callback) => {
-        const peer = Result.fromThrowable(() => call.getPeer())().unwrapOr("unknown");
-        log.debug({ method: "getNameRegistryEvent", req: call.request }, `RPC call from ${peer}`);
-
-        const request = call.request;
-
-        const nameRegistryEventResult = await this.engine?.getNameRegistryEvent(request.name);
-        nameRegistryEventResult?.match(
-          (nameRegistryEvent: NameRegistryEvent) => {
-            callback(null, nameRegistryEvent);
-          },
-          (err: HubError) => {
-            callback(toServiceError(err));
-          },
-        );
-      },
       getUsernameProof: async (call, callback) => {
         const peer = Result.fromThrowable(() => call.getPeer())().unwrapOr("unknown");
         log.debug({ method: "getUsernameProof", req: call.request }, `RPC call from ${peer}`);
@@ -1162,8 +1145,8 @@ export default class Server {
           this.engine?.eventHandler.off("pruneMessage", eventListener);
           this.engine?.eventHandler.off("revokeMessage", eventListener);
           this.engine?.eventHandler.off("mergeIdRegistryEvent", eventListener);
-          this.engine?.eventHandler.off("mergeNameRegistryEvent", eventListener);
           this.engine?.eventHandler.off("mergeUsernameProofEvent", eventListener);
+          this.engine?.eventHandler.off("mergeOnChainEvent", eventListener);
 
           this.subscribeIpLimiter.removeConnection(peer);
 
@@ -1249,8 +1232,8 @@ export default class Server {
           this.engine?.eventHandler.on("pruneMessage", eventListener);
           this.engine?.eventHandler.on("revokeMessage", eventListener);
           this.engine?.eventHandler.on("mergeIdRegistryEvent", eventListener);
-          this.engine?.eventHandler.on("mergeNameRegistryEvent", eventListener);
           this.engine?.eventHandler.on("mergeUsernameProofEvent", eventListener);
+          this.engine?.eventHandler.on("mergeOnChainEvent", eventListener);
         } else {
           for (const eventType of request.eventTypes) {
             if (eventType === HubEventType.MERGE_MESSAGE) {
@@ -1261,8 +1244,8 @@ export default class Server {
               this.engine?.eventHandler.on("revokeMessage", eventListener);
             } else if (eventType === HubEventType.MERGE_ID_REGISTRY_EVENT) {
               this.engine?.eventHandler.on("mergeIdRegistryEvent", eventListener);
-            } else if (eventType === HubEventType.MERGE_NAME_REGISTRY_EVENT) {
-              this.engine?.eventHandler.on("mergeNameRegistryEvent", eventListener);
+            } else if (eventType === HubEventType.MERGE_ON_CHAIN_EVENT) {
+              this.engine?.eventHandler.on("mergeOnChainEvent", eventListener);
             } else if (eventType === HubEventType.MERGE_USERNAME_PROOF) {
               this.engine?.eventHandler.on("mergeUsernameProofEvent", eventListener);
             }

@@ -2,7 +2,6 @@ syntax = "proto3";
 
 import "message.proto";
 import "id_registry_event.proto";
-import "name_registry_event.proto";
 import "hub_event.proto";
 import "request_response.proto";
 import "username_proof.proto";
@@ -31,7 +30,6 @@ service HubService {
   // User Data
   rpc GetUserData(UserDataRequest) returns (Message);
   rpc GetUserDataByFid(FidRequest) returns (MessagesResponse);
-  rpc GetNameRegistryEvent(NameRegistryEventRequest) returns (NameRegistryEvent);
   rpc GetOnChainEvents(OnChainEventRequest) returns (OnChainEventResponse);
   rpc GetCurrentStorageLimitsByFid(FidRequest) returns (StorageLimitsResponse);
 
@@ -78,6 +76,5 @@ service AdminService {
   rpc DeleteAllMessagesFromDb(Empty) returns (Empty);
   
   rpc SubmitIdRegistryEvent(IdRegistryEvent) returns (IdRegistryEvent);
-  rpc SubmitNameRegistryEvent(NameRegistryEvent) returns (NameRegistryEvent);
   rpc SubmitOnChainEvent(OnChainEvent) returns (OnChainEvent);
 }

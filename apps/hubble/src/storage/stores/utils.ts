@@ -1,15 +1,7 @@
-import {
-  IdRegistryEvent,
-  NameRegistryEvent,
-  UserNameProof,
-  HubError,
-  bytesCompare,
-  bytesIncrement,
-} from "@farcaster/hub-nodejs";
+import { IdRegistryEvent, UserNameProof, HubError, bytesCompare, bytesIncrement } from "@farcaster/hub-nodejs";
 
-type Event = IdRegistryEvent | NameRegistryEvent;
+type Event = IdRegistryEvent;
 
-// TODO: add NameRegistryEvent when it's exported from protobufs
 /** Compares two events that happened on the blockchain based on block number/hash, log index */
 export const eventCompare = (a: Event, b: Event): number => {
   // Compare blockNumber

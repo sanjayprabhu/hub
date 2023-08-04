@@ -113,15 +113,6 @@ describe("IdRegistryEventFactory", () => {
   });
 });
 
-describe("NameRegistryEventFactory", () => {
-  test("succeeds", () => {
-    const event = Factories.NameRegistryEvent.build();
-    const encoded = protobufs.NameRegistryEvent.encode(event).finish();
-    const decoded = protobufs.NameRegistryEvent.decode(encoded);
-    expect(protobufs.NameRegistryEvent.toJSON(decoded)).toEqual(protobufs.NameRegistryEvent.toJSON(event));
-  });
-});
-
 describe("StorageRentOnChainEventFactory", () => {
   test("succeeds", () => {
     const event = Factories.StorageRentOnChainEvent.build();

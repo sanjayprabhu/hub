@@ -7,7 +7,7 @@ import { jestRocksDB } from "../storage/db/jestUtils.js";
 import Engine from "../storage/engine/index.js";
 import { ViemLocalEip712Signer, makeUserNameProofClaim, FarcasterNetwork } from "@farcaster/core";
 import { MockHub } from "../test/mocks.js";
-import { getUserNameProof } from "../storage/db/nameRegistryEvent.js";
+import { getUserNameProof } from "../storage/db/usernameProof.js";
 import { utf8ToBytes } from "@noble/curves/abstract/utils";
 import { generatePrivateKey, privateKeyToAccount, PrivateKeyAccount, Address } from "viem/accounts";
 import { bytesToHex } from "viem";

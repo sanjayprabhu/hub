@@ -258,8 +258,7 @@ function prefixProfileToDataType(keysProfile: KeysProfile[], userPostfixKeys: Ke
       index = 0;
     } else if (
       (i >= RootPrefix.CastsByParent && i <= RootPrefix.ReactionsByTarget) ||
-      i === RootPrefix.IdRegistryEventByCustodyAddress ||
-      i === RootPrefix.NameRegistryEventsByExpiry
+      i === RootPrefix.IdRegistryEventByCustodyAddress
     ) {
       index = 1;
     } else if (i === RootPrefix.SyncMerkleTrieNode) {

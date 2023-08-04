@@ -16,7 +16,6 @@ import {
 import { HubEvent } from "./hub_event";
 import { IdRegistryEvent } from "./id_registry_event";
 import { CastId, Message } from "./message";
-import { NameRegistryEvent } from "./name_registry_event";
 import { OnChainEvent } from "./onchain_event";
 import {
   CastsByParentRequest,
@@ -33,7 +32,6 @@ import {
   LinksByFidRequest,
   LinksByTargetRequest,
   MessagesResponse,
-  NameRegistryEventRequest,
   OnChainEventRequest,
   OnChainEventResponse,
   ReactionRequest,
@@ -179,15 +177,6 @@ export const HubServiceService = {
     requestDeserialize: (value: Buffer) => FidRequest.decode(value),
     responseSerialize: (value: MessagesResponse) => Buffer.from(MessagesResponse.encode(value).finish()),
     responseDeserialize: (value: Buffer) => MessagesResponse.decode(value),
-  },
-  getNameRegistryEvent: {
-    path: "/HubService/GetNameRegistryEvent",
-    requestStream: false,
-    responseStream: false,
-    requestSerialize: (value: NameRegistryEventRequest) => Buffer.from(NameRegistryEventRequest.encode(value).finish()),
-    requestDeserialize: (value: Buffer) => NameRegistryEventRequest.decode(value),
-    responseSerialize: (value: NameRegistryEvent) => Buffer.from(NameRegistryEvent.encode(value).finish()),
-    responseDeserialize: (value: Buffer) => NameRegistryEvent.decode(value),
   },
   getOnChainEvents: {
     path: "/HubService/GetOnChainEvents",
@@ -463,7 +452,6 @@ export interface HubServiceServer extends UntypedServiceImplementation {
   /** User Data */
   getUserData: handleUnaryCall<UserDataRequest, Message>;
   getUserDataByFid: handleUnaryCall<FidRequest, MessagesResponse>;
-  getNameRegistryEvent: handleUnaryCall<NameRegistryEventRequest, NameRegistryEvent>;
   getOnChainEvents: handleUnaryCall<OnChainEventRequest, OnChainEventResponse>;
   getCurrentStorageLimitsByFid: handleUnaryCall<FidRequest, StorageLimitsResponse>;
   /** Username Proof */
@@ -682,21 +670,6 @@ export interface HubServiceClient extends Client {
     metadata: Metadata,
     options: Partial<CallOptions>,
     callback: (error: ServiceError | null, response: MessagesResponse) => void,
-  ): ClientUnaryCall;
-  getNameRegistryEvent(
-    request: NameRegistryEventRequest,
-    callback: (error: ServiceError | null, response: NameRegistryEvent) => void,
-  ): ClientUnaryCall;
-  getNameRegistryEvent(
-    request: NameRegistryEventRequest,
-    metadata: Metadata,
-    callback: (error: ServiceError | null, response: NameRegistryEvent) => void,
-  ): ClientUnaryCall;
-  getNameRegistryEvent(
-    request: NameRegistryEventRequest,
-    metadata: Metadata,
-    options: Partial<CallOptions>,
-    callback: (error: ServiceError | null, response: NameRegistryEvent) => void,
   ): ClientUnaryCall;
   getOnChainEvents(
     request: OnChainEventRequest,
@@ -1139,15 +1112,6 @@ export const AdminServiceService = {
     responseSerialize: (value: IdRegistryEvent) => Buffer.from(IdRegistryEvent.encode(value).finish()),
     responseDeserialize: (value: Buffer) => IdRegistryEvent.decode(value),
   },
-  submitNameRegistryEvent: {
-    path: "/AdminService/SubmitNameRegistryEvent",
-    requestStream: false,
-    responseStream: false,
-    requestSerialize: (value: NameRegistryEvent) => Buffer.from(NameRegistryEvent.encode(value).finish()),
-    requestDeserialize: (value: Buffer) => NameRegistryEvent.decode(value),
-    responseSerialize: (value: NameRegistryEvent) => Buffer.from(NameRegistryEvent.encode(value).finish()),
-    responseDeserialize: (value: Buffer) => NameRegistryEvent.decode(value),
-  },
   submitOnChainEvent: {
     path: "/AdminService/SubmitOnChainEvent",
     requestStream: false,
@@ -1163,7 +1127,6 @@ export interface AdminServiceServer extends UntypedServiceImplementation {
   rebuildSyncTrie: handleUnaryCall<Empty, Empty>;
   deleteAllMessagesFromDb: handleUnaryCall<Empty, Empty>;
   submitIdRegistryEvent: handleUnaryCall<IdRegistryEvent, IdRegistryEvent>;
-  submitNameRegistryEvent: handleUnaryCall<NameRegistryEvent, NameRegistryEvent>;
   submitOnChainEvent: handleUnaryCall<OnChainEvent, OnChainEvent>;
 }
 
@@ -1209,21 +1172,6 @@ export interface AdminServiceClient extends Client {
     metadata: Metadata,
     options: Partial<CallOptions>,
     callback: (error: ServiceError | null, response: IdRegistryEvent) => void,
-  ): ClientUnaryCall;
-  submitNameRegistryEvent(
-    request: NameRegistryEvent,
-    callback: (error: ServiceError | null, response: NameRegistryEvent) => void,
-  ): ClientUnaryCall;
-  submitNameRegistryEvent(
-    request: NameRegistryEvent,
-    metadata: Metadata,
-    callback: (error: ServiceError | null, response: NameRegistryEvent) => void,
-  ): ClientUnaryCall;
-  submitNameRegistryEvent(
-    request: NameRegistryEvent,
-    metadata: Metadata,
-    options: Partial<CallOptions>,
-    callback: (error: ServiceError | null, response: NameRegistryEvent) => void,
   ): ClientUnaryCall;
   submitOnChainEvent(
     request: OnChainEvent,

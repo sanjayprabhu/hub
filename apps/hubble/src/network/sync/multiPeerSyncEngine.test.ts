@@ -22,7 +22,7 @@ import Engine from "../../storage/engine/index.js";
 import { MockHub } from "../../test/mocks.js";
 import { sleep, sleepWhile } from "../../utils/crypto.js";
 import { EthEventsProvider } from "../../eth/ethEventsProvider.js";
-import { deployIdRegistry, deployNameRegistry, publicClient } from "../../test/utils.js";
+import { deployIdRegistry, publicClient } from "../../test/utils.js";
 
 const TEST_TIMEOUT_LONG = 60 * 1000;
 
@@ -374,18 +374,7 @@ describe("Multi peer sync engine", () => {
     const { contractAddress: idRegistryAddress } = await deployIdRegistry();
     if (!idRegistryAddress) throw new Error("Failed to deploy NameRegistry contract");
 
-    const { contractAddress: nameRegistryAddress } = await deployNameRegistry();
-    if (!nameRegistryAddress) throw new Error("Failed to deploy NameRegistry contract");
-
-    const ethEventsProvider = new EthEventsProvider(
-      hub2,
-      publicClient,
-      idRegistryAddress,
-      nameRegistryAddress,
-      1,
-      10000,
-      false,
-    );
+    const ethEventsProvider = new EthEventsProvider(hub2, publicClient, idRegistryAddress, 1, 10000, false);
     const syncEngine2 = new SyncEngine(hub2, testDb2, ethEventsProvider);
     const retrySpy = jest.spyOn(ethEventsProvider, "retryEventsFromBlock");
 

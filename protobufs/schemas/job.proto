@@ -4,7 +4,3 @@ message RevokeMessagesBySignerJobPayload {
   uint32 fid = 1;
   bytes signer = 2;
 }
-
-message UpdateNameRegistryEventExpiryJobPayload {
-  bytes fname = 1;
-}

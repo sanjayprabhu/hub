@@ -25,8 +25,6 @@ import {
   MergeOnChainEventHubEvent,
   MergeUsernameProofHubEvent,
   Message,
-  NameRegistryEvent,
-  NameRegistryEventType,
   OnChainEvent,
   OnChainEventResponse,
   OnChainEventType,
@@ -218,6 +216,7 @@ class Engine {
     this.eventHandler.off("mergeMessage", this.handleMergeMessageEvent);
     this.eventHandler.off("revokeMessage", this.handleRevokeMessageEvent);
     this.eventHandler.off("pruneMessage", this.handlePruneMessageEvent);
+    this.eventHandler.off("mergeOnChainEvent", this.handleMergeOnChainEvent);
 
     this._revokeSignerWorker.start();
 
@@ -299,14 +298,6 @@ class Engine {
   async mergeIdRegistryEvent(event: IdRegistryEvent): HubAsyncResult<number> {
     if (event.type === IdRegistryEventType.REGISTER || event.type === IdRegistryEventType.TRANSFER) {
       return ResultAsync.fromPromise(this._signerStore.mergeIdRegistryEvent(event), (e) => e as HubError);
-    }
-
-    return err(new HubError("bad_request.validation_failure", "invalid event type"));
-  }
-
-  async mergeNameRegistryEvent(event: NameRegistryEvent): HubAsyncResult<number> {
-    if (event.type === NameRegistryEventType.TRANSFER || event.type === NameRegistryEventType.RENEW) {
-      return ResultAsync.fromPromise(this._userDataStore.mergeNameRegistryEvent(event), (e) => e as HubError);
     }
 
     return err(new HubError("bad_request.validation_failure", "invalid event type"));
@@ -748,15 +739,6 @@ class Engine {
     return ResultAsync.fromPromise(this._userDataStore.getUserDataAddsByFid(fid, pageOptions), (e) => e as HubError);
   }
 
-  async getNameRegistryEvent(fname: Uint8Array): HubAsyncResult<NameRegistryEvent> {
-    const validatedFname = validations.validateFname(fname);
-    if (validatedFname.isErr()) {
-      return err(validatedFname.error);
-    }
-
-    return ResultAsync.fromPromise(this._userDataStore.getNameRegistryEvent(fname), (e) => e as HubError);
-  }
-
   async getOnChainEvents(type: OnChainEventType, fid: number): HubAsyncResult<OnChainEventResponse> {
     const validatedFid = validations.validateFid(fid);
     if (validatedFid.isErr()) {
@@ -1026,7 +1008,7 @@ class Engine {
       // Users are allowed to set fname = '' to remove their fname, so check to see if fname is set
       // before validating the custody address
       if (nameBytes.value.length > 0) {
-        // Get the NameRegistryEvent for the fname
+        // Get the username proof for the fname
         const nameProof = (await this.getUserNameProof(nameBytes.value)).mapErr((e) =>
           e.errCode === "not_found"
             ? new HubError(

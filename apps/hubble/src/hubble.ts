@@ -6,8 +6,6 @@ import {
   HubState,
   IdRegistryEvent,
   Message,
-  NameRegistryEvent,
-  UpdateNameRegistryEventExpiryJobPayload,
   HubAsyncResult,
   HubError,
   bytesToHexString,
@@ -38,17 +36,12 @@ import { RootPrefix } from "./storage/db/types.js";
 import Engine from "./storage/engine/index.js";
 import { PruneEventsJobScheduler } from "./storage/jobs/pruneEventsJob.js";
 import { PruneMessagesJobScheduler } from "./storage/jobs/pruneMessagesJob.js";
-import {
-  UpdateNameRegistryEventExpiryJobQueue,
-  UpdateNameRegistryEventExpiryJobWorker,
-} from "./storage/jobs/updateNameRegistryEventExpiryJob.js";
 import { sleep } from "./utils/crypto.js";
 import {
   idRegistryEventToLog,
   logger,
   messageToLog,
   messageTypeToName,
-  nameRegistryEventToLog,
   onChainEventToLog,
   usernameProofToLog,
 } from "./utils/logger.js";
@@ -95,7 +88,6 @@ export interface HubInterface {
   engine: Engine;
   submitMessage(message: Message, source?: HubSubmitSource): HubAsyncResult<number>;
   submitIdRegistryEvent(event: IdRegistryEvent, source?: HubSubmitSource): HubAsyncResult<number>;
-  submitNameRegistryEvent(event: NameRegistryEvent, source?: HubSubmitSource): HubAsyncResult<number>;
   submitUserNameProof(usernameProof: UserNameProof, source?: HubSubmitSource): HubAsyncResult<number>;
   submitOnChainEvent(event: OnChainEvent, source?: HubSubmitSource): HubAsyncResult<number>;
   getHubState(): HubAsyncResult<HubState>;
@@ -158,9 +150,6 @@ export interface HubOptions {
 
   /** Address of the IdRegistry contract  */
   idRegistryAddress?: `0x${string}`;
-
-  /** Address of the NameRegistryAddress contract  */
-  nameRegistryAddress?: `0x${string}`;
 
   /** Address of the Id Registry contract  */
   l2IdRegistryAddress?: `0x${string}`;
@@ -274,9 +263,6 @@ export class Hub implements HubInterface {
   private checkIncomingPortsJobScheduler: CheckIncomingPortsJobScheduler;
   private updateNetworkConfigJobScheduler: UpdateNetworkConfigJobScheduler;
 
-  private updateNameRegistryEventExpiryJobQueue: UpdateNameRegistryEventExpiryJobQueue;
-  private updateNameRegistryEventExpiryJobWorker?: UpdateNameRegistryEventExpiryJobWorker;
-
   engine: Engine;
   ethRegistryProvider?: EthEventsProvider;
   fNameRegistryEventsProvider?: FNameRegistryEventsProvider;
@@ -295,7 +281,6 @@ export class Hub implements HubInterface {
         options.ethRpcUrl,
         options.rankRpcs ?? false,
         options.idRegistryAddress ?? GoerliEthConstants.IdRegistryAddress,
-        options.nameRegistryAddress ?? GoerliEthConstants.NameRegistryAddress,
         options.firstBlock ?? GoerliEthConstants.FirstBlock,
         options.chunkSize ?? GoerliEthConstants.ChunkSize,
         options.resyncEthEvents ?? false,
@@ -407,9 +392,6 @@ export class Hub implements HubInterface {
     );
     this.adminServer = new AdminServer(this, this.rocksDB, this.engine, this.syncEngine, options.rpcAuth);
 
-    // Setup job queues
-    this.updateNameRegistryEventExpiryJobQueue = new UpdateNameRegistryEventExpiryJobQueue(this.rocksDB);
-
     // Setup job schedulers/workers
     this.pruneMessagesJobScheduler = new PruneMessagesJobScheduler(this.engine);
     this.periodSyncJobScheduler = new PeriodicSyncJobScheduler(this, this.syncEngine);
@@ -422,14 +404,6 @@ export class Hub implements HubInterface {
 
     if (options.testUsers) {
       this.testDataJobScheduler = new PeriodicTestDataJobScheduler(this.rpcServer, options.testUsers as TestUser[]);
-    }
-
-    if (this.ethRegistryProvider) {
-      this.updateNameRegistryEventExpiryJobWorker = new UpdateNameRegistryEventExpiryJobWorker(
-        this.updateNameRegistryEventExpiryJobQueue,
-        this.rocksDB,
-        this.ethRegistryProvider,
-      );
     }
 
     this.allowedPeerIds = this.options.allowedPeers;
@@ -561,10 +535,6 @@ export class Hub implements HubInterface {
     // Start the sync engine
     await this.syncEngine.initialize(this.options.rebuildSyncTrie ?? false);
 
-    if (this.updateNameRegistryEventExpiryJobWorker) {
-      this.updateNameRegistryEventExpiryJobWorker.start();
-    }
-
     await this.gossipNode.start(this.options.bootstrapAddrs ?? [], {
       peerId: this.options.peerId,
       ipMultiAddr: this.options.ipMultiAddr,
@@ -661,17 +631,12 @@ export class Hub implements HubInterface {
     // Stop admin, gossip and sync engine
     await Promise.all([this.adminServer.stop(), this.gossipNode.stop(), this.syncEngine.stop()]);
 
-    if (this.updateNameRegistryEventExpiryJobWorker) {
-      this.updateNameRegistryEventExpiryJobWorker.stop();
-    }
-
     // Stop cron tasks
     this.pruneMessagesJobScheduler.stop();
     this.periodSyncJobScheduler.stop();
     this.pruneEventsJobScheduler.stop();
     this.checkFarcasterVersionJobScheduler.stop();
     this.testDataJobScheduler?.stop();
-    this.updateNameRegistryEventExpiryJobWorker?.stop();
     this.validateOrRevokeMessagesJobScheduler.stop();
     this.gossipContactInfoJobScheduler.stop();
     this.checkIncomingPortsJobScheduler.stop();
@@ -1049,32 +1014,6 @@ export class Hub implements HubInterface {
         logEvent.warn({ errCode: e.errCode }, `submitIdRegistryEvent error: ${e.message}`);
       },
     );
-
-    return mergeResult;
-  }
-
-  async submitNameRegistryEvent(event: NameRegistryEvent, source?: HubSubmitSource): HubAsyncResult<number> {
-    const logEvent = log.child({ event: nameRegistryEventToLog(event), source });
-
-    const mergeResult = await this.engine.mergeNameRegistryEvent(event);
-
-    mergeResult.match(
-      (eventId) => {
-        logEvent.info(
-          `submitNameRegistryEvent success ${eventId}: fname ${bytesToUtf8String(
-            event.fname,
-          )._unsafeUnwrap()} assigned to ${bytesToHexString(event.to)._unsafeUnwrap()} in block ${event.blockNumber}`,
-        );
-      },
-      (e) => {
-        logEvent.warn({ errCode: e.errCode }, `submitNameRegistryEvent error: ${e.message}`);
-      },
-    );
-
-    if (!event.expiry) {
-      const payload = UpdateNameRegistryEventExpiryJobPayload.create({ fname: event.fname });
-      await this.updateNameRegistryEventExpiryJobQueue.enqueueJob(payload);
-    }
 
     return mergeResult;
   }

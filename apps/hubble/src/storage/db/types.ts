@@ -33,8 +33,7 @@ export enum RootPrefix {
   ReactionsByTarget = 5,
   /* Used to store custody events */
   IdRegistryEvent = 6,
-  /* Used to store name registry events */
-  NameRegistryEvent = 7,
+  // NameRegistryEvent = 7, // Deprecated
   /* Used to store custody events by custody address */
   IdRegistryEventByCustodyAddress = 8,
   /* Used to store the state of the hub */
@@ -43,10 +42,8 @@ export enum RootPrefix {
   JobRevokeMessageBySigner = 10,
   /* Sync Merkle Trie Node */
   SyncMerkleTrieNode = 11,
-  /* Update NameRegistryEvent expiry job */
-  JobUpdateNameExpiry = 12,
-  /* Index name registry events by expiry */
-  NameRegistryEventsByExpiry = 13,
+  // JobUpdateNameExpiry = 12,  // Deprecated
+  // NameRegistryEventsByExpiry = 13, // Deprecated
   /* To check if the Hub was cleanly shutdown */
   HubCleanShutdown = 14,
   /* Event log */

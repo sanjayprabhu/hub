@@ -143,10 +143,6 @@ message UserDataRequest {
   UserDataType user_data_type = 2;
 }
 
-message NameRegistryEventRequest {
-  bytes name = 1;
-}
-
 message RentRegistryEventsRequest {
   uint64 fid = 1;
 }

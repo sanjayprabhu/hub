@@ -6,10 +6,6 @@ export interface RevokeMessagesBySignerJobPayload {
   signer: Uint8Array;
 }
 
-export interface UpdateNameRegistryEventExpiryJobPayload {
-  fname: Uint8Array;
-}
-
 function createBaseRevokeMessagesBySignerJobPayload(): RevokeMessagesBySignerJobPayload {
   return { fid: 0, signer: new Uint8Array() };
 }
@@ -82,67 +78,6 @@ export const RevokeMessagesBySignerJobPayload = {
     const message = createBaseRevokeMessagesBySignerJobPayload();
     message.fid = object.fid ?? 0;
     message.signer = object.signer ?? new Uint8Array();
-    return message;
-  },
-};
-
-function createBaseUpdateNameRegistryEventExpiryJobPayload(): UpdateNameRegistryEventExpiryJobPayload {
-  return { fname: new Uint8Array() };
-}
-
-export const UpdateNameRegistryEventExpiryJobPayload = {
-  encode(message: UpdateNameRegistryEventExpiryJobPayload, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.fname.length !== 0) {
-      writer.uint32(10).bytes(message.fname);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): UpdateNameRegistryEventExpiryJobPayload {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseUpdateNameRegistryEventExpiryJobPayload();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag != 10) {
-            break;
-          }
-
-          message.fname = reader.bytes();
-          continue;
-      }
-      if ((tag & 7) == 4 || tag == 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): UpdateNameRegistryEventExpiryJobPayload {
-    return { fname: isSet(object.fname) ? bytesFromBase64(object.fname) : new Uint8Array() };
-  },
-
-  toJSON(message: UpdateNameRegistryEventExpiryJobPayload): unknown {
-    const obj: any = {};
-    message.fname !== undefined &&
-      (obj.fname = base64FromBytes(message.fname !== undefined ? message.fname : new Uint8Array()));
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<UpdateNameRegistryEventExpiryJobPayload>, I>>(
-    base?: I,
-  ): UpdateNameRegistryEventExpiryJobPayload {
-    return UpdateNameRegistryEventExpiryJobPayload.fromPartial(base ?? {});
-  },
-
-  fromPartial<I extends Exact<DeepPartial<UpdateNameRegistryEventExpiryJobPayload>, I>>(
-    object: I,
-  ): UpdateNameRegistryEventExpiryJobPayload {
-    const message = createBaseUpdateNameRegistryEventExpiryJobPayload();
-    message.fname = object.fname ?? new Uint8Array();
     return message;
   },
 };

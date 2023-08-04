@@ -174,28 +174,6 @@ export default class AdminServer {
         );
       },
 
-      submitNameRegistryEvent: async (call, callback) => {
-        const authResult = await authenticateUser(call.metadata, this.rpcUsers);
-        if (authResult.isErr()) {
-          logger.warn({ errMsg: authResult.error.message }, "submitNameRegistryEvent failed");
-          callback(
-            toServiceError(new HubError("unauthenticated", `gRPC authentication failed: ${authResult.error.message}`)),
-          );
-          return;
-        }
-
-        const nameRegistryEvent = call.request;
-        const result = await this.hub?.submitNameRegistryEvent(nameRegistryEvent, "rpc");
-        result?.match(
-          () => {
-            callback(null, nameRegistryEvent);
-          },
-          (err: HubError) => {
-            callback(toServiceError(err));
-          },
-        );
-      },
-
       submitOnChainEvent: async (call, callback) => {
         const authResult = await authenticateUser(call.metadata, this.rpcUsers);
         if (authResult.isErr()) {

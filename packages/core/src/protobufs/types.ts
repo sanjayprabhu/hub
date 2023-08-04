@@ -1,5 +1,4 @@
 import { IdRegistryEvent } from "./generated/id_registry_event";
-import { NameRegistryEvent } from "./generated/name_registry_event";
 import * as hubEventProtobufs from "./generated/hub_event";
 import * as protobufs from "./generated/message";
 import * as onchainEventProtobufs from "./generated/onchain_event";
@@ -175,13 +174,6 @@ export type MergeIdRegistryEventHubEvent = hubEventProtobufs.HubEvent & {
   type: hubEventProtobufs.HubEventType.MERGE_ID_REGISTRY_EVENT;
   mergeIdRegistryEventBody: hubEventProtobufs.MergeIdRegistryEventBody & {
     idRegistryEvent: IdRegistryEvent;
-  };
-};
-
-export type MergeNameRegistryEventHubEvent = hubEventProtobufs.HubEvent & {
-  type: hubEventProtobufs.HubEventType.MERGE_NAME_REGISTRY_EVENT;
-  mergeNameRegistryEventBody: hubEventProtobufs.MergeNameRegistryEventBody & {
-    nameRegistryEvent: NameRegistryEvent;
   };
 };
 

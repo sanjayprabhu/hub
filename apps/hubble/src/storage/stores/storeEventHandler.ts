@@ -13,7 +13,6 @@ import {
   isRevokeMessageHubEvent,
   MergeIdRegistryEventHubEvent,
   MergeMessageHubEvent,
-  MergeNameRegistryEventHubEvent,
   MergeUsernameProofHubEvent,
   PruneMessageHubEvent,
   RevokeMessageHubEvent,
@@ -88,12 +87,6 @@ export type StoreEvents = {
    * merged into the SignerStore.
    */
   mergeIdRegistryEvent: (event: MergeIdRegistryEventHubEvent) => void;
-
-  /**
-   * mergeNameRegistryEvent is emitted when an event from the Name Registry contract
-   * is merged into the UserDataStore.
-   */
-  mergeNameRegistryEvent: (event: MergeNameRegistryEventHubEvent) => void;
 
   /**
    * mergeUsernameProofEvent is emitted when a username proof from the fname server

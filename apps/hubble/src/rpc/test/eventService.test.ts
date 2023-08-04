@@ -2,7 +2,6 @@ import {
   Message,
   FarcasterNetwork,
   IdRegistryEvent,
-  NameRegistryEvent,
   SignerAddMessage,
   CastAddMessage,
   ReactionAddMessage,
@@ -13,14 +12,12 @@ import {
   isPruneMessageHubEvent,
   isRevokeMessageHubEvent,
   isMergeIdRegistryEventHubEvent,
-  isMergeNameRegistryEventHubEvent,
   Factories,
   getInsecureHubRpcClient,
   HubRpcClient,
   ClientReadableStream,
   UserNameProof,
   isMergeUsernameProofHubEvent,
-  Metadata,
   getAuthMetadata,
 } from "@farcaster/hub-nodejs";
 import Server, { SUBSCRIBE_PERIP_LIMIT } from "../server.js";
@@ -113,9 +110,6 @@ const setupSubscription = async (
     } else if (isMergeIdRegistryEventHubEvent(event)) {
       // rome-ignore lint/style/noNonNullAssertion: legacy code, avoid using ignore for new code
       events.push([event.type, IdRegistryEvent.toJSON(event.mergeIdRegistryEventBody.idRegistryEvent!)]);
-    } else if (isMergeNameRegistryEventHubEvent(event)) {
-      // rome-ignore lint/style/noNonNullAssertion: legacy code, avoid using ignore for new code
-      events.push([event.type, NameRegistryEvent.toJSON(event.mergeNameRegistryEventBody.nameRegistryEvent!)]);
     } else if (isMergeUsernameProofHubEvent(event)) {
       // rome-ignore lint/style/noNonNullAssertion: legacy code, avoid using ignore for new code
       events.push([event.type, UserNameProof.toJSON(event.mergeUsernameProofBody.usernameProof!)]);
@@ -217,6 +211,10 @@ describe("subscribe", () => {
         [HubEventType.MERGE_USERNAME_PROOF, UserNameProof.toJSON(usernameProof)],
         [HubEventType.MERGE_MESSAGE, Message.toJSON(reactionAdd)],
       ]);
+    });
+
+    test("does not fail for depreacted events", async () => {
+      throw new Error("Not implemented");
     });
 
     test("emits events with early id", async () => {

@@ -133,9 +133,6 @@ app
   .option("--commit-lock-max-pending <number>", "Rocks DB commit lock max pending jobs (default: 1000)", parseNumber)
   .option("--rpc-auth <username:password,...>", "Require username-password auth for RPC submit. (default: disabled)")
 
-  // To be deprecated
-  .option("--fnr-address <address>", "The address of the Farcaster Name Registry contract")
-
   .action(async (cliOptions) => {
     const handleShutdownSignal = (signalName: string) => {
       logger.warn(`${signalName} received`);
@@ -384,7 +381,6 @@ app
       fnameServerUrl: cliOptions.fnameServerUrl ?? hubConfig.fnameServerUrl ?? DEFAULT_FNAME_SERVER_URL,
       rankRpcs: cliOptions.rankRpcs ?? hubConfig.rankRpcs ?? false,
       idRegistryAddress: cliOptions.firAddress ?? hubConfig.firAddress,
-      nameRegistryAddress: cliOptions.fnrAddress ?? hubConfig.fnrAddress,
       firstBlock: cliOptions.firstBlock ?? hubConfig.firstBlock,
       chunkSize: cliOptions.chunkSize ?? hubConfig.chunkSize ?? DEFAULT_CHUNK_SIZE,
       l2RpcUrl: cliOptions.l2RpcUrl ?? hubConfig.l2RpcUrl,

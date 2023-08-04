@@ -19,8 +19,6 @@ import {
   Message,
   MessageData,
   MessageType,
-  NameRegistryEvent,
-  NameRegistryEventType,
   PruneMessageHubEvent,
   ReactionAddMessage,
   ReactionType,
@@ -45,7 +43,7 @@ import { getMessage, makeTsHash, typeToSetPostfix } from "../db/message.js";
 import { StoreEvents } from "../stores/storeEventHandler.js";
 import { makeVerificationEthAddressClaim } from "@farcaster/core";
 import { setReferenceDateForTest } from "../../utils/versions.js";
-import { getUserNameProof } from "../db/nameRegistryEvent.js";
+import { getUserNameProof } from "../db/usernameProof.js";
 import { publicClient } from "../../test/utils.js";
 import { jest } from "@jest/globals";
 import { RevokeMessagesBySignerJobQueue, RevokeMessagesBySignerJobWorker } from "../jobs/revokeMessagesBySignerJob.js";
@@ -65,7 +63,6 @@ const custodySigner = Factories.Eip712Signer.build();
 let custodySignerKey: Uint8Array;
 let signerKey: Uint8Array;
 let custodyEvent: IdRegistryEvent;
-let fnameTransfer: NameRegistryEvent;
 let userNameProof: UserNameProof;
 let signerAdd: SignerAddMessage;
 let signerRemove: SignerRemoveMessage;
@@ -80,7 +77,6 @@ beforeAll(async () => {
   custodySignerKey = (await custodySigner.getSignerKey())._unsafeUnwrap();
   custodyEvent = Factories.IdRegistryEvent.build({ fid, to: custodySignerKey });
 
-  fnameTransfer = Factories.NameRegistryEvent.build({ fname, to: custodyEvent.to });
   userNameProof = Factories.UserNameProof.build({ name: fname, owner: custodyEvent.to, fid: fid });
 
   signerAdd = await Factories.SignerAddMessage.create(
@@ -114,19 +110,6 @@ describe("mergeIdRegistryEvent", () => {
   test("fails with invalid event type", async () => {
     const invalidEvent = Factories.IdRegistryEvent.build({ type: 10 as unknown as IdRegistryEventType });
     const result = await engine.mergeIdRegistryEvent(invalidEvent);
-    expect(result._unsafeUnwrapErr()).toEqual(new HubError("bad_request.validation_failure", "invalid event type"));
-  });
-});
-
-describe("mergeNameRegistryEvent", () => {
-  test("succeeds", async () => {
-    await expect(engine.mergeNameRegistryEvent(fnameTransfer)).resolves.toBeInstanceOf(Ok);
-    await expect(engine.getNameRegistryEvent(fname)).resolves.toEqual(ok(fnameTransfer));
-  });
-
-  test("fails with invalid event type", async () => {
-    const invalidEvent = Factories.NameRegistryEvent.build({ type: 10 as unknown as NameRegistryEventType });
-    const result = await engine.mergeNameRegistryEvent(invalidEvent);
     expect(result._unsafeUnwrapErr()).toEqual(new HubError("bad_request.validation_failure", "invalid event type"));
   });
 });

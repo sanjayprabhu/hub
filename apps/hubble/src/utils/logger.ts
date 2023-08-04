@@ -4,7 +4,6 @@ import {
   IdRegistryEvent,
   Message,
   MessageType,
-  NameRegistryEvent,
   OnChainEvent,
   onChainEventTypeToJSON,
   UserNameProof,
@@ -71,14 +70,6 @@ export const idRegistryEventToLog = (event: IdRegistryEvent) => {
   return {
     blockNumber: event.blockNumber,
     fid: event.fid,
-    to: bytesToHexString(event.to)._unsafeUnwrap(),
-  };
-};
-
-export const nameRegistryEventToLog = (event: NameRegistryEvent) => {
-  return {
-    blockNumber: event.blockNumber,
-    fname: Buffer.from(event.fname).toString("utf-8").replace(/\0/g, ""),
     to: bytesToHexString(event.to)._unsafeUnwrap(),
   };
 };

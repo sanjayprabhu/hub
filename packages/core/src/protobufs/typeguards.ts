@@ -226,16 +226,6 @@ export const isMergeIdRegistryEventHubEvent = (
   );
 };
 
-export const isMergeNameRegistryEventHubEvent = (
-  event: hubEventProtobufs.HubEvent,
-): event is types.MergeNameRegistryEventHubEvent => {
-  return (
-    event.type === hubEventProtobufs.HubEventType.MERGE_NAME_REGISTRY_EVENT &&
-    typeof event.mergeNameRegistryEventBody !== "undefined" &&
-    typeof event.mergeNameRegistryEventBody.nameRegistryEvent !== "undefined"
-  );
-};
-
 export const isMergeOnChainHubEvent = (event: hubEventProtobufs.HubEvent): event is types.MergeOnChainEventHubEvent => {
   return (
     event.type === hubEventProtobufs.HubEventType.MERGE_ON_CHAIN_EVENT &&

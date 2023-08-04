@@ -3,7 +3,7 @@ import { Chain, localhost } from "viem/chains";
 import { createPublicClient, http } from "viem";
 import { Abi } from "abitype";
 import { accounts, localHttpUrl } from "./constants.js";
-import { IdRegistry, NameRegistry, StorageRegistry } from "../eth/abis.js";
+import { IdRegistry, StorageRegistry } from "../eth/abis.js";
 
 export const anvilChain = {
   ...localhost,
@@ -118,15 +118,6 @@ export const deployIdRegistry = async () => {
   return deploy({
     abi: IdRegistry.abi,
     bytecode: IdRegistry.bytecode,
-    account: accounts[0].address,
-    args: [accounts[0].address],
-  });
-};
-
-export const deployNameRegistry = async () => {
-  return deploy({
-    abi: NameRegistry.abi,
-    bytecode: NameRegistry.bytecode,
     account: accounts[0].address,
     args: [accounts[0].address],
   });
