@@ -377,6 +377,15 @@ export class GossipNode extends TypedEmitter<NodeEvents> {
         topic: detail.msg.topic,
       });
 
+      log.info("MESSAGE_INSTRUMENTATION", { topic: detail.msg.topic, length: detail.msg.data.length });
+      if (detail.data.length > 1024) {
+        log.info("MESSAGE_INSTRUMENTATION_LONG", {
+          topic: detail.msg.topic,
+          length: detail.msg.data.length,
+          fullMesssage: Buffer.from(detail.msg.data).toString("hex"),
+        });
+      }
+
       // ignore messages not in our topic lists (e.g. GossipSub peer discovery messages)
       if (this.gossipTopics().includes(detail.msg.topic)) {
         try {
