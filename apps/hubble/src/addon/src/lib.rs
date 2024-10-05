@@ -2,9 +2,13 @@ use crate::{
     store::{CastStore, StoreEventHandler, UsernameProofStore, VerificationStore},
     trie::merkle_trie::MerkleTrie,
 };
+use backtrace::Backtrace;
 use db::RocksDB;
 use ed25519_dalek::{Signature, Signer, SigningKey, VerifyingKey, EXPANDED_SECRET_KEY_LENGTH};
 use neon::{prelude::*, types::buffer::TypedArray};
+use std::alloc::{GlobalAlloc, Layout, System};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use std::time::{SystemTime, UNIX_EPOCH};
 use std::{convert::TryInto, sync::Mutex};
 use store::{LinkStore, ReactionStore, Store, UserDataStore};
 use threadpool::ThreadPool;
@@ -18,6 +22,86 @@ mod trie;
 mod protos {
     include!(concat!("./", "/proto/protobufs.rs"));
 }
+
+struct LoggingAllocator {
+    inner: System,
+    total_allocated: AtomicUsize,
+    last_threshold_update: AtomicUsize,
+    logged_backtrace: AtomicBool,
+}
+
+impl LoggingAllocator {
+    fn get_current_time() -> usize {
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("Time went backwards")
+            .as_secs() as usize
+    }
+}
+
+unsafe impl GlobalAlloc for LoggingAllocator {
+    unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
+        let ptr = self.inner.alloc(layout);
+        if ptr.is_null() {
+            println!("Allocation failed!");
+            return ptr;
+        }
+
+        let window_duration = 10; // 10 seconds
+        let threshold = 1024; // 1kb, for test. Replace with 500 * 1024 * 1024 (500mb) for production
+
+        let size = layout.size();
+        let prev_total = self.total_allocated.fetch_add(size, Ordering::Relaxed);
+        let new_total = prev_total + size;
+
+        if new_total < threshold {
+            // Fast exit if we haven't allocated a lot of memory
+            return ptr;
+        }
+
+        let now = Self::get_current_time();
+
+        let last_threshold_update = self.last_threshold_update.load(Ordering::Relaxed);
+        let time_to_cross_threshold = now.saturating_sub(last_threshold_update);
+        if last_threshold_update == 0 || time_to_cross_threshold >= window_duration {
+            // println!("Allocation of {} bytes within {}. Resetting counters", new_total, time_to_cross_threshold);
+            // Last time we allocated more than threshold bytes was more than window_duration seconds ago. Reset the counters.
+            self.last_threshold_update.store(now, Ordering::Relaxed);
+            self.total_allocated.store(size, Ordering::Relaxed);
+            self.logged_backtrace.store(false, Ordering::Relaxed);
+        } else {
+            // We're allocating a lot of memory in a short period of time. Log
+
+            // If we haven't dumped stack trace before, do it now
+            if !self.logged_backtrace.load(Ordering::Relaxed) {
+                self.logged_backtrace.store(true, Ordering::Relaxed);
+                let backtrace = Backtrace::new();
+                println!(
+                    "Allocation of {} bytes within {} in:\n{:?}",
+                    new_total, time_to_cross_threshold, backtrace
+                );
+            } else {
+                // Reset total allocated so we can fast exit again. Otherwise, we'll keep querying
+                // and comparing timestamp for every subsequent allocation. We don't have to be too
+                // accurate, since we're seeing multiple gbs allocated within seconds.
+                self.total_allocated.store(size, Ordering::Relaxed);
+            }
+        }
+        ptr
+    }
+
+    unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
+        self.inner.dealloc(ptr, layout);
+    }
+}
+
+#[global_allocator]
+static GLOBAL: LoggingAllocator = LoggingAllocator {
+    inner: System,
+    total_allocated: AtomicUsize::new(0),
+    last_threshold_update: AtomicUsize::new(0),
+    logged_backtrace: AtomicBool::new(false),
+};
 
 fn ed25519_sign_message_hash(mut cx: FunctionContext) -> JsResult<JsBuffer> {
     let hash_arg = cx.argument::<JsBuffer>(0)?;
