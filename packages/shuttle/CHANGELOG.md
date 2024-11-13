@@ -1,5 +1,11 @@
 # @farcaster/hub-shuttle
 
+## 0.6.11
+
+### Patch Changes
+
+- 5b80d1a4: fix: Use statsd host from env
+
 ## 0.6.10
 
 ### Patch Changes
